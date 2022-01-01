@@ -66,10 +66,26 @@ const generateID = () => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
+  //console.log('Object.values(persons).includes(body.name) is ' + Object.values(persons).includes(body.name))
 
   if (!body.name) {
     return res.status(400).json({
       error: 'name missing'
+    })
+  }
+
+  // check if number is missing
+  if (!body.number) {
+    return res.status(400).json({
+      error: 'number missing'
+    })
+  }
+
+  // check if name is already in phonebook
+  const check_duplicate = persons.filter(person => person.name === body.name)
+  if (check_duplicate.length !== 0) {
+    return res.status(400).json({
+      error: 'name must be unique'
     })
   }
 
