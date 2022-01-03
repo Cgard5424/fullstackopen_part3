@@ -1,3 +1,6 @@
+require('dotenv').config()
+
+const Person = require('./models/person')
 const { response } = require('express')
 const express = require('express')
 const morgan = require('morgan')
@@ -43,26 +46,34 @@ app.get('/', (request, response) => {
   response.send(`<h1>Hello, World!</h1>`)
 })
 
-app.get('/api/persons', (request, response) => {
-  response.json(persons)
+app.get('/api/persons', (req, res) => {
+  Person.find({}).then(persons => {
+    res.json(persons)
+  })
 })
 
-app.get('/info', (request, response) => {
-  const num_persons = persons.length
-  const date = Date()
-  response.send(`Phonebook has info for ${num_persons} people<br>${date}`)
+app.get('/info', (req, res) => {
+  const person_length = Person.countDocuments({}).then(persons => {
+    res.send(`
+      <p>Phonebook has info for ${persons} people</p>
+      <p>${new Date}</p>
+      `)
+  })
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id === id)
-
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
-
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person)
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(error => {
+      console.log("error message")
+      next(error)
+    })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
@@ -93,27 +104,37 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
-  // check if name is already in phonebook
-  const check_duplicate = persons.filter(person => person.name === body.name)
-  if (check_duplicate.length !== 0) {
-    return res.status(400).json({
-      error: 'name must be unique'
+  Person.find({ name: `${req.params.name}`})
+    .then(person => {
+      if (person) {
+        res.status(400).json({
+          error: 'name must be unique'
+        })
+      }
     })
-  }
 
-  const person = {
+  // TODO: add logic to check if name is already in the phonebook
+  // // check if name is already in phonebook
+  // const check_duplicate = persons.filter(person => person.name === body.name)
+  // if (check_duplicate.length !== 0) {
+  //   return res.status(400).json({
+  //     error: 'name must be unique'
+  //   })
+  // }
+
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: generateID()
-  }
+    // id: generateID() ID is automatically generated
+  })
 
-  persons = persons.concat(person)
-
-  res.json(person)
+  person.save().then(savedPerson => {
+    res.json(savedPerson)
+  })
 
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
