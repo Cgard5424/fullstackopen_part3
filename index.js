@@ -104,24 +104,6 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
-  Person.find({ name: `${req.params.name}`})
-    .then(person => {
-      if (person) {
-        res.status(400).json({
-          error: 'name must be unique'
-        })
-      }
-    })
-
-  // TODO: add logic to check if name is already in the phonebook
-  // // check if name is already in phonebook
-  // const check_duplicate = persons.filter(person => person.name === body.name)
-  // if (check_duplicate.length !== 0) {
-  //   return res.status(400).json({
-  //     error: 'name must be unique'
-  //   })
-  // }
-
   const person = new Person({
     name: body.name,
     number: body.number,
