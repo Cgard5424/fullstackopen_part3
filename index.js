@@ -84,8 +84,6 @@ app.delete('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
 
-  
-
   // check if name is missing
   if (!body.name) {
     return res.status(400).json({
@@ -94,22 +92,13 @@ app.post('/api/persons', (req, res, next) => {
   }
 
   // check if number is missing
-  if (!body.number) {
+  else if (!body.number) {
     return res.status(400).json({
       error: 'number missing'
     })
   }
 
-  // check if the person is already in the database
-  Person.find({ name: body.name})
-    .then(person => {
-      if (person.length !== 0) {
-        return res.status(400).json({
-          error: 'name already exists in databse'
-        })
-      }
-    })
-    .catch(error => next(error))
+  // TODO: check if there is a person already in the database
 
   const person = new Person({
     name: body.name,
@@ -117,7 +106,7 @@ app.post('/api/persons', (req, res, next) => {
   })
 
   person.save().then(savedPerson => {
-    res.json(savedPerson)
+    return res.json(savedPerson)
   })
 
 })
