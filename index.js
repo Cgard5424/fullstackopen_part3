@@ -19,7 +19,7 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === 'ValidationError') { 
     return response.status(400).json({ error: error.message})
   }
-  
+
   next(error)
 }
 
@@ -101,8 +101,6 @@ app.post('/api/persons', (req, res, next) => {
     })
   }
 
-  // TODO: check if there is a person already in the database
-
   const person = new Person({
     name: body.name,
     number: body.number,
@@ -124,7 +122,8 @@ app.put('/api/persons/:id', (request, response, next) => {
     number: body.number,
   }
 
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  // when updating where number.length < required, it shows wrong error message "bob already eleted from server"
+  Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true })
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
