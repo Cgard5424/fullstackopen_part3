@@ -9,14 +9,17 @@ app.use(cors())
 app.use(express.json())
 
 const morgan = require('morgan')
-//const { response } = require('express')
+const { response } = require('express')
+
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id'})
+  } else if (error.name === 'ValidationError') { 
+    return response.status(400).json({ error: error.message})
   }
-
+  
   next(error)
 }
 
@@ -105,10 +108,13 @@ app.post('/api/persons', (req, res, next) => {
     number: body.number,
   })
 
-  person.save().then(savedPerson => {
-    return res.json(savedPerson)
-  })
-
+  person
+    .save()
+    .then(savedPerson => savedPerson.toJSON())
+    .then(savedAndFormattedPerson => {
+      res.json(savedAndFormattedPerson)
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
