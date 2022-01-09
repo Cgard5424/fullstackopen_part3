@@ -9,15 +9,14 @@ app.use(cors())
 app.use(express.json())
 
 const morgan = require('morgan')
-const { response } = require('express')
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id'})
-  } else if (error.name === 'ValidationError') { 
-    return response.status(400).json({ error: error.message})
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)
@@ -33,40 +32,40 @@ const errorHandler = (error, request, response, next) => {
 
 // app.use(requestLogger)
 
-morgan.token('type', function (req, res) {
-  if (req.method === 'POST') {
-    return JSON.stringify(req.body)
+morgan.token('type', function (request) {
+  if (request.method === 'POST') {
+    return JSON.stringify(request.body)
   }
 })
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :type'))
 
 app.get('/', (request, response) => {
-  response.send(`<h1>Hello, World!</h1>`)
+  response.send('<h1>Hello, World!</h1>')
 })
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
-    res.json(persons)
+    response.json(persons)
   })
 })
 
-app.get('/info', (req, res) => {
-  const person_length = Person.countDocuments({}).then(persons => {
-    res.send(`
-      <p>Phonebook has info for ${persons} people</p>
+app.get('/info', (request, response) => {
+  Person.countDocuments({}).then(persons_count => {
+    response.send(`
+      <p>Phonebook has info for ${persons_count} people</p>
       <p>${new Date}</p>
       `)
   })
 })
 
-app.get('/api/persons/:id', (req, res, next) => {
-  Person.findById(req.params.id)
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
     .then(person => {
       if (person) {
-        res.json(person)
+        response.json(person)
       } else {
-        res.status(404).end()
+        response.status(404).end()
       }
     })
     .catch(error => next(error))
@@ -84,19 +83,19 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res, next) => {
-  const body = req.body
+app.post('/api/persons', (request, response, next) => {
+  const body = request.body
 
   // check if name is missing
   if (!body.name) {
-    return res.status(400).json({
+    return response.status(400).json({
       error: 'name missing'
     })
   }
 
   // check if number is missing
   else if (!body.number) {
-    return res.status(400).json({
+    return response.status(400).json({
       error: 'number missing'
     })
   }
@@ -110,7 +109,7 @@ app.post('/api/persons', (req, res, next) => {
     .save()
     .then(savedPerson => savedPerson.toJSON())
     .then(savedAndFormattedPerson => {
-      res.json(savedAndFormattedPerson)
+      response.json(savedAndFormattedPerson)
     })
     .catch(error => next(error))
 })
