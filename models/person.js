@@ -14,13 +14,15 @@ mongoose.connect(url)
 const personSchema = new mongoose.Schema({
   name: {
     type: String,
-    minlength: 3,
+    minlength: [3, 'Name must be at least 3 characters.'],
+    maxlength: [30, 'Name must not be more than 30 characters.'],
     unique: true,
     required: true
   },
   number: {
     type: String,
-    minlength: 8,
+    minlength: [8, 'Number must contain at least 8 numbers.'],
+    maxlength: [15, 'Number must not contain more than 15 numbers'],
     required: true
   }
 })
